@@ -55,6 +55,14 @@ async function run() {
 
 
 
+        app.post('/additem', async (req, res) => {
+            const addItem = req.body;
+            const result = await vegetableItem.insertOne(addItem);
+            res.send(result)
+        })
+        // Add New Item
+
+
         
   
         
