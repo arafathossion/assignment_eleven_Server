@@ -35,7 +35,27 @@ async function run() {
         })
         // Single Item
 
+        app.put('/quantity/:id', async (req, res) => {
+            const id = req.params.id;
+            const updateQuantity = req.body; 
+            console.log(updateQuantity)
+            console.log(id)
+            const filter = {_id: ObjectId(id)};
+            // console.log(filter)
+            const options = {upsert : true};
+            const updatedDoc = {
+                $set:{
+                    quantity: updateQuantity.reduceQuantity,
+                }
+            }
+            const result = await vegetableItem.updateOne(filter,updatedDoc,options);
+            res.send(result)
+        })
+        // Update Quantity
 
+
+
+        
   
         
 
