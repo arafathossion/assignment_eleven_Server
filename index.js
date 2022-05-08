@@ -27,7 +27,16 @@ async function run() {
         })
         // Load All Data
 
-        
+        app.get('/vegetableItem/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) };
+            const singleItems = await vegetableItem.findOne(query);
+            res.send(singleItems)
+        })
+        // Single Item
+
+
+  
         
 
     } finally {
