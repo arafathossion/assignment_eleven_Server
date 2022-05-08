@@ -63,7 +63,17 @@ async function run() {
         // Add New Item
 
 
-        
+        app.get('/myitems', async (req, res) => {
+            const email = req.query.email;
+            const query = { email: email };
+            const cursor = vegetableItem.find(query);
+            const singleItem = await cursor.toArray();
+            res.send(singleItem);
+        })
+        // My Items
+
+
+       
   
         
 
