@@ -2,11 +2,32 @@ const express = require('express')
 const app = express()
 const cors = require('cors')
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
+var jwt = require('jsonwebtoken');
 const { send } = require('express/lib/response');
 require('dotenv').config();
 const port = process.env.PORT || 5000;
 app.use(cors())
 app.use(express.json())
+
+
+function verifyJWT(req, res, next) {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) {
+        return res.status(401).send({ message: "please login" })
+    }
+    const token = authHeader.split(' ')[1];
+    console.log('token', token)
+    jwt.verify(token, process.env.ACCESS_TOKEN, function (err, decoded) {
+        if (err) {
+            return res.status(403).send({ message: "Forbidden access" })
+        }
+        console.log('decoded', decoded)
+        req.decoded = decoded;
+        next();
+    })
+    console.log("verifyJWT", authHeader);
+}
+// verifyJWT()
 
 
 
@@ -18,6 +39,20 @@ async function run() {
         await client.connect();
         const database = client.db("vegetableWearhouse");
         const vegetableItem = database.collection("vegetableItem");
+
+
+
+        app.post('/login', async (req, res) => {
+            const user = req.body;
+            console.log('user', user)
+            const accessToken = jwt.sign(user, process.env.ACCESS_TOKEN, {
+                expiresIn: '1d'
+            });
+            res.send({ accessToken });
+        })
+        // JWT
+
+
 
         app.get('/vegetableItems', async (req, res) => {
             const query = {};
@@ -37,18 +72,18 @@ async function run() {
 
         app.put('/quantity/:id', async (req, res) => {
             const id = req.params.id;
-            const updateQuantity = req.body; 
+            const updateQuantity = req.body;
             console.log(updateQuantity)
             console.log(id)
-            const filter = {_id: ObjectId(id)};
+            const filter = { _id: ObjectId(id) };
             // console.log(filter)
-            const options = {upsert : true};
+            const options = { upsert: true };
             const updatedDoc = {
-                $set:{
+                $set: {
                     quantity: updateQuantity.reduceQuantity,
                 }
             }
-            const result = await vegetableItem.updateOne(filter,updatedDoc,options);
+            const result = await vegetableItem.updateOne(filter, updatedDoc, options);
             res.send(result)
         })
         // Update Quantity
@@ -63,12 +98,19 @@ async function run() {
         // Add New Item
 
 
-        app.get('/myitems', async (req, res) => {
+        app.get('/myitems', verifyJWT, async (req, res) => {
+            const decodesingInEmail = req.decoded.singInEmail;
             const email = req.query.email;
-            const query = { email: email };
+            console.log(email)
+            if(email === decodesingInEmail){
+                const query = { email: email };
             const cursor = vegetableItem.find(query);
             const singleItem = await cursor.toArray();
             res.send(singleItem);
+            }
+            else{
+                return res.status(403).send({ message: "Forbidden access" })
+            }
         })
         // My Items
 
@@ -80,8 +122,8 @@ async function run() {
             res.send(result)
         })
         // Delete My Item
-  
-        
+
+
 
     } finally {
         // await client.close();
