@@ -19,7 +19,15 @@ async function run() {
         const database = client.db("vegetableWearhouse");
         const vegetableItem = database.collection("vegetableItem");
 
+        app.get('/vegetableItems', async (req, res) => {
+            const query = {};
+            const cursor = vegetableItem.find(query);
+            const singleItem = await cursor.toArray();
+            res.send(singleItem);
+        })
+        // Load All Data
 
+        
         
 
     } finally {
